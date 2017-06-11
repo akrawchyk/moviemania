@@ -159,6 +159,32 @@ class MoviesAPITestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('count'), len(test_movies))
 
+    # filter by genre
+    def test_movie_genre_filter(self):
+        test_movies = ['Helium', 'Neon', 'Argon', 'Krypton', 'Xenon', 'Radon']
+        another_genre = Genre.objects.create(name='Another Genre')
+        for idx, movie in enumerate(test_movies):
+            m = Movie.objects.create(
+                title=movie, release_date=self.test_movie_data['release_date'])
+            if idx % 2 > 0:
+                m.genres.add(self.expected_genre)
+            else:
+                m.genres.add(another_genre)
+            m.save()
+        # single filter
+        response = self.client.get(
+            '/api/movies/?genres={}'.format(another_genre.id))
+        data = response.data
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data.get('count'), 3)
+        # multiple filter
+        response = self.client.get(
+            '/api/movies/?genres={}&genres={}'.format(
+                self.expected_genre.id, another_genre.id))
+        data = response.data
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data.get('count'), 6)
+
 
 class GenreAPITestCase(APITransactionTestCase):
     def setUp(self):
@@ -257,3 +283,24 @@ class GenreAPITestCase(APITransactionTestCase):
         response = self.client.get('/api/genres/', format='json')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('count'), len(test_genres))
+
+    # movie counts
+    def test_genre_movie_count(self):
+        test_genre = Genre.objects.create(name='Test Genre')
+        another_genre = Genre.objects.create(name='Another Genre')
+        test_movies = ['Helium', 'Neon', 'Argon', 'Krypton', 'Xenon', 'Radon']
+        for idx, movie in enumerate(test_movies):
+            test_movie_data = {
+                'title': movie,
+                'release_date': '2006-01-01'}
+            m = Movie.objects.create(**test_movie_data)
+            if idx % 2 > 0:
+                m.genres.add(test_genre)
+            else:
+                m.genres.add(another_genre)
+            m.save()
+
+        response = self.client.get('/api/genres/{}/'.format(test_genre.id),
+                                   format='json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('movie_count'), 3)

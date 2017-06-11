@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "490d71000ea36be084cc9f51b663f4bc7e116923f4f2057a3c6bb780a7f65fdd"
+            "sha256": "6339fd7e6d234f32b4dc9f64444fa652c5d5b3993f52a53ba4076c821384a031"
         },
         "requires": {},
         "sources": [
@@ -15,6 +15,10 @@
         "django": {
             "hash": "sha256:cbd3944599086518cdcf3235e90230c8b8a9c5476b20447ee57b313dba14f67a",
             "version": "==1.11.2"
+        },
+        "django-filter": {
+            "hash": "sha256:6ef1611aeacfda8f13a075a992ff65687afbd5cc8fcb0f3f1563a9ad4fe2d1b0",
+            "version": "==1.0.4"
         },
         "djangorestframework": {
             "hash": "sha256:bb9d55997a71fb1c844cd84c15cbe2e87d2ec8493a685f96aa3db403760626b7",

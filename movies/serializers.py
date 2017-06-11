@@ -10,6 +10,8 @@ class MovieSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class GenreSerializer(serializers.HyperlinkedModelSerializer):
+    movie_count = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = Genre
-        fields = ('name',)
+        fields = ('name', 'movie_count')
