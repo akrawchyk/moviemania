@@ -1,3 +1,21 @@
+# Movie Mania
+
+## Initial Data
+
+To load initial data you have 2 options. First is how I initially loaded the
+data into Django in order to generate fixtures:
+
+`python manage.py loaddata_movies_genres`
+
+or a more typical Django initial data loading (run in this order):
+
+```
+python manage.py loaddata genres.json
+python manage.py loaddata movies.json
+```
+
+## Original Assignment
+
 Attached is a text file mapping movie information to it's genre
 information. Using Django and Django REST Framework, we would like you
 to do the following:
