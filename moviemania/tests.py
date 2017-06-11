@@ -16,62 +16,148 @@ class MoviesAPITestCase(TestCase):
         self.user = User.objects.create_user(
             username='test', email='test@test.com', password='top_secret')
         self.expected_genre = Genre.objects.create(name='Test Movie Genre')
+        self.test_movie_data = {
+            'title': 'Hydrogen',
+            'release_date': '2006-01-01',
+            'genres': ['/api/genres/{}/'.format(self.expected_genre.id)]}
 
     # create
     def test_movie_logged_create(self):
-        expected_title = 'Hydrogen'
-        expected_release_date = '2006-01-01'
         self.client.force_authenticate(user=self.user)
-        response = self.client.post(
-            '/api/movies/',
-            {'title': expected_title,
-             'release_date': expected_release_date,
-             'genres': ['/api/genres/{}/'.format(self.expected_genre.id)]},
-            format='json')
+        response = self.client.post('/api/movies/',
+                                    self.test_movie_data, format='json')
         self.client.force_authenticate(user=None)
-        test_movie = Movie.objects.get(title=expected_title)
+        data = response.data
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(test_movie.title, expected_title)
-        self.assertEqual(test_movie.release_date, datetime.date(2006, 1, 1))
-        self.assertEqual(test_movie.genres.first().id, self.expected_genre.id)
+        self.assertEqual(data.get('title'), self.test_movie_data['title'])
+        self.assertEqual(data.get('release_date'),
+                         self.test_movie_data['release_date'])
+        self.assertTrue('/genres/{}'.format(self.expected_genre.id) in
+                        ','.join(data.get('genres')))
 
     def test_movie_anon_create(self):
-        expected_title = 'Hydrogen'
-        expected_release_date = '2006-01-01'
-        response = self.client.post(
-            '/api/movies/',
-            {'title': expected_title,
-             'release_date': expected_release_date,
-             'genres': [self.expected_genre.id]}, format='json')
+        response = self.client.post('/api/movies/', self.test_movie_data,
+                                    format='json')
         self.assertEqual(response.status_code, 403)
 
     # read
     def test_movie_logged_read(self):
-        pass
+        test_movie = Movie.objects.create(
+            title=self.test_movie_data['title'],
+            release_date=self.test_movie_data['release_date'])
+        test_movie.genres.add(self.expected_genre.id)
+        test_movie.save()
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(
+            '/api/movies/{}/'.format(test_movie.id), format='json')
+        self.client.force_authenticate(user=None)
+        data = response.data
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data.get('title'), self.test_movie_data['title'])
+        self.assertEqual(data.get('release_date'),
+                         self.test_movie_data['release_date'])
 
     def test_movie_anon_read(self):
-        pass
+        test_movie = Movie.objects.create(
+            title=self.test_movie_data['title'],
+            release_date=self.test_movie_data['release_date'])
+        test_movie.genres.add(self.expected_genre.id)
+        test_movie.save()
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(
+            '/api/movies/{}/'.format(test_movie.id), format='json')
+        data = response.data
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data.get('title'), self.test_movie_data['title'])
+        self.assertEqual(data.get('release_date'),
+                         self.test_movie_data['release_date'])
 
     # update
     def test_movie_logged_update(self):
-        pass
+        test_movie = Movie.objects.create(
+            title=self.test_movie_data['title'],
+            release_date=self.test_movie_data['release_date'])
+        test_movie.genres.add(self.expected_genre.id)
+        test_movie.save()
+        expected_movie_data = {
+            'title': 'Updated Title',
+            'release_date': '1970-01-01',
+            'genres': ['/api/genres/{}/'.format(self.expected_genre.id)]
+        }
+        self.client.force_authenticate(user=self.user)
+        response = self.client.put(
+            '/api/movies/{}/'.format(test_movie.id),
+            expected_movie_data, format='json')
+        self.client.force_authenticate(user=None)
+        data = response.data
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data.get('title'), expected_movie_data['title'])
+        self.assertEqual(data.get('release_date'),
+                         expected_movie_data['release_date'])
 
     def test_movie_anon_update(self):
-        pass
+        test_movie = Movie.objects.create(
+            title=self.test_movie_data['title'],
+            release_date=self.test_movie_data['release_date'])
+        test_movie.genres.add(self.expected_genre.id)
+        test_movie.save()
+        expected_movie_data = {
+            'title': 'Updated Title',
+            'release_date': '1970-01-01',
+            'genres': ['/api/genres/{}/'.format(self.expected_genre.id)]
+        }
+        response = self.client.put(
+            '/api/movies/{}/'.format(test_movie.id),
+            expected_movie_data, format='json')
+        self.assertEqual(response.status_code, 403)
 
-    # dlete
+    # delete
     def test_movie_logged_delete(self):
-        pass
+        test_movie = Movie.objects.create(
+            title=self.test_movie_data['title'],
+            release_date=self.test_movie_data['release_date'])
+        test_movie.genres.add(self.expected_genre.id)
+        test_movie.save()
+        self.client.force_authenticate(user=self.user)
+        response = self.client.delete(
+            '/api/movies/{}/'.format(test_movie.id), format='json')
+        self.client.force_authenticate(user=None)
+        self.assertEqual(response.status_code, 204)
 
     def test_movie_anon_delete(self):
-        pass
+        test_movie = Movie.objects.create(
+            title=self.test_movie_data['title'],
+            release_date=self.test_movie_data['release_date'])
+        test_movie.genres.add(self.expected_genre.id)
+        test_movie.save()
+        response = self.client.delete(
+            '/api/movies/{}/'.format(test_movie.id), format='json')
+        self.assertEqual(response.status_code, 403)
 
     # list
     def test_movie_logged_list(self):
-        pass
+        test_movies = ['Helium', 'Neon', 'Argon', 'Krypton', 'Xenon', 'Radon']
+        for movie in test_movies:
+            m = Movie.objects.create(
+                title=movie, release_date=self.test_movie_data['release_date'])
+            m.genres.add(self.expected_genre)
+            m.save()
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get('/api/movies/', format='json')
+        self.client.force_authenticate(user=None)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('count'), len(test_movies))
 
     def test_movie_anon_list(self):
-        pass
+        test_movies = ['Helium', 'Neon', 'Argon', 'Krypton', 'Xenon', 'Radon']
+        for movie in test_movies:
+            m = Movie.objects.create(
+                title=movie, release_date=self.test_movie_data['release_date'])
+            m.genres.add(self.expected_genre)
+            m.save()
+        response = self.client.get('/api/movies/', format='json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('count'), len(test_movies))
 
 
 class GenreAPITestCase(APITransactionTestCase):
@@ -105,6 +191,7 @@ class GenreAPITestCase(APITransactionTestCase):
         response = self.client.get(
             '/api/genres/{}/'.format(test_genre.id), format='json')
         self.client.force_authenticate(user=None)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('name'), expected_name)
 
     def test_genre_anon_read(self):
@@ -112,10 +199,11 @@ class GenreAPITestCase(APITransactionTestCase):
         test_genre = Genre.objects.create(name=expected_name)
         response = self.client.get(
             '/api/genres/{}/'.format(test_genre.id), format='json')
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('name'), expected_name)
 
     # update
-    def test_genre_logged_read(self):
+    def test_genre_logged_update(self):
         initial_name = 'Test Genre'
         expected_name = 'Updated Genre'
         test_genre = Genre.objects.create(name=initial_name)
@@ -124,9 +212,10 @@ class GenreAPITestCase(APITransactionTestCase):
             '/api/genres/{}/'.format(test_genre.id), {'name': expected_name},
             format='json')
         self.client.force_authenticate(user=None)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('name'), expected_name)
 
-    def test_genre_anon_read(self):
+    def test_genre_anon_update(self):
         initial_name = 'Test Genre'
         expected_name = 'Updated Genre'
         test_genre = Genre.objects.create(name=initial_name)
@@ -158,6 +247,7 @@ class GenreAPITestCase(APITransactionTestCase):
         self.client.force_authenticate(user=self.user)
         response = self.client.get('/api/genres/', format='json')
         self.client.force_authenticate(user=None)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('count'), len(test_genres))
 
     def test_genre_anon_list(self):
@@ -165,4 +255,5 @@ class GenreAPITestCase(APITransactionTestCase):
         for genre_name in test_genres:
             Genre.objects.create(name=genre_name)
         response = self.client.get('/api/genres/', format='json')
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('count'), len(test_genres))
