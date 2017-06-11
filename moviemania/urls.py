@@ -27,5 +27,5 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += [
-        url('r^api/', include('movies.urls', namespace='movies')),
+        url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     ]
