@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django.utils.functional import cached_property
 
 
 class Movie(models.Model):
@@ -14,6 +15,10 @@ class Movie(models.Model):
 
     class Meta:
         ordering = ('release_date',)
+
+    @cached_property
+    def sequels_count(self):
+        return Movie.objects.filter(title__startswith=self.title).count()-1
 
 
 class Genre(models.Model):

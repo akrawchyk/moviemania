@@ -173,17 +173,43 @@ class MoviesAPITestCase(TestCase):
             m.save()
         # single filter
         response = self.client.get(
-            '/api/movies/?genres={}'.format(another_genre.id))
+            '/api/movies/?genres={}'.format(another_genre.id), format='json')
         data = response.data
         self.assertEqual(response.status_code, 200)
         self.assertEqual(data.get('count'), 3)
         # multiple filter
         response = self.client.get(
             '/api/movies/?genres={}&genres={}'.format(
-                self.expected_genre.id, another_genre.id))
+                self.expected_genre.id, another_genre.id), format='json')
         data = response.data
         self.assertEqual(response.status_code, 200)
         self.assertEqual(data.get('count'), 6)
+
+    # sequels count
+    def test_movie_sequels_count(self):
+        test_movies = ['The Godfather', 'The Godfather Part II',
+                       'The Godfather Part III']
+        movies = []
+        for movie in test_movies:
+            m = Movie.objects.create(
+                title=movie, release_date=self.test_movie_data['release_date'])
+            m.genres.add(self.expected_genre)
+            m.save()
+            movies.append(m)
+        # sequels
+        response = self.client.get('/api/movies/{}/'.format(movies[0].id),
+                                   format='json')
+        data = response.data
+        self.assertEqual(data.get('sequels_count'), 2)
+        response = self.client.get('/api/movies/{}/'.format(movies[1].id),
+                                   format='json')
+        data = response.data
+        self.assertEqual(data.get('sequels_count'), 1)
+        # no sequels
+        response = self.client.get('/api/movies/{}/'.format(movies[2].id),
+                                   format='json')
+        data = response.data
+        self.assertEqual(data.get('sequels_count'), 0)
 
 
 class GenreAPITestCase(APITransactionTestCase):
