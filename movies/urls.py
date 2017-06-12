@@ -9,4 +9,5 @@ router.register(r'genres', views.GenreViewSet)
 
 urlpatterns = [
     url(r'^', include(router.urls)),
+    url(r'^topGenreByYear/', views.topGenreByYearView)
 ]

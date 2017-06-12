@@ -11,6 +11,7 @@ from movies.models import Movie, Genre
 
 
 class MoviesAPITestCase(TestCase):
+
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create_user(
@@ -330,3 +331,48 @@ class GenreAPITestCase(APITransactionTestCase):
                                    format='json')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('movie_count'), 3)
+
+
+class TopGenreByYearTestCase(TestCase):
+
+    def setUp(self):
+        self.client = APIClient()
+        test_genres = ['Earth', 'Fire', 'Wind']
+        test_movies = ['Helium', 'Neon', 'Argon', 'Krypton', 'Xenon', 'Radon']
+        years = [2999, 3000, 3001]
+
+        genres = []
+        for genre in test_genres:
+            g = Genre.objects.create(name=genre)
+            genres.append(g)
+
+        for y in years:
+            for idx, movie in enumerate(test_movies):
+                m = Movie.objects.create(title=movie,
+                                         release_date='{}-01-01'.format(y))
+                if y == 3001:
+                    m.genres.add(genres[2])
+                elif idx % 2 > 0:
+                    m.genres.add(genres[0])
+                else:
+                    m.genres.add(genres[1])
+
+    def test_top_genre_by_year(self):
+        response = self.client.get('/api/topGenreByYear/?year=3001', format='json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('name'), 'Wind')
+        response = self.client.get('/api/topGenreByYear/?year=3000', format='json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('name'), 'Earth')
+
+    def test_top_genre_by_year_no_movies(self):
+        response = self.client.get('/api/topGenreByYear/?year=1800', format='json')
+        self.assertEqual(response.status_code, 404)
+
+    def test_top_genre_by_year_no_year_input(self):
+        response = self.client.get('/api/topGenreByYear/', format='json')
+        self.assertEqual(response.status_code, 400)
+
+    def test_top_genre_by_year_bad_year_input(self):
+        response = self.client.get('/api/topGenreByYear/?year=asdf', format='json')
+        self.assertEqual(response.status_code, 400)
