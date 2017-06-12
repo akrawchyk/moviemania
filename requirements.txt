@@ -1,0 +1,4 @@
+django==1.11.2
+djangorestframework==3.6.3
+pandas==0.20.2
+django-filter==1.0.4

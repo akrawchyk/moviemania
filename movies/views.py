@@ -47,7 +47,7 @@ def topGenreByYearView(request):
             c=Count('name')).order_by('-c').first()
 
     if top_genre:
-        serializer = GenreSerializer(top_genre)
+        serializer = GenreSerializer(top_genre, context={'request': request})
         return Response(serializer.data)
     else:
         return Response({'message': 'No top genre found'}, status=404)

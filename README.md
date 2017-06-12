@@ -5,7 +5,9 @@
 To load initial data you have 2 options. First is an example for how I
 initially loaded the data into Django in order to generate fixtures:
 
-`python manage.py loaddata_movies_genres`
+```
+python manage.py loaddata_movies_genres
+```
 
 or a more typical Django initial data loading (run in this order):
 
