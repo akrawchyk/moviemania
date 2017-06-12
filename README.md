@@ -14,7 +14,19 @@ python manage.py loaddata genres.json
 python manage.py loaddata movies.json
 ```
 
-## Original Assignment
+## Endpoints
+
+```
+/api/movies/
+/api/movies/<pk>/
+
+/api/genres/
+/api/genres/<pk>/
+
+/api/topGenreByYear/?year=<year>
+```
+
+## Description
 
 Attached is a text file mapping movie information to it's genre
 information. Using Django and Django REST Framework, we would like you
